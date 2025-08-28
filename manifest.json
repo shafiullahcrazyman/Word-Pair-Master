@@ -1,6 +1,6 @@
 {
-  "name": "My Web App",
-  "short_name": "MyApp",
+  "name": "Word Pair Master",
+  "short_name": "Word Pair Master",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -18,4 +18,5 @@
       "purpose": "any maskable"
     }
   ]
+
 }
