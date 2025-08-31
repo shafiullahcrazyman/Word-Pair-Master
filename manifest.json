@@ -3,8 +3,8 @@
   "short_name": "Word Pair Master",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#241654",
-  "theme_color": "#241654",
+  "background_color": "#291860",
+  "theme_color": "#291860",
   "icons": [
     {
       "src": "icon.png",
@@ -20,4 +20,5 @@
   ]
 
 }
+
 
