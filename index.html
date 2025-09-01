@@ -8,16 +8,12 @@
   />
   <title>Word Pair Master by Shafiullah</title>
   
-  <!-- Manifest for Android/Chrome -->
-<link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json">
 
-<!-- iOS / Safari Home Screen -->
 <link rel="apple-touch-icon" href="icon.png">
 
-<!-- Favicon fallback -->
 <link rel="icon" href="icon.png">
 
-<!-- Theme colors -->
 <meta name="theme-color" content="#291860">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -149,12 +145,13 @@
     .section-title{ font-size:15px; font-weight:800; color:var(--violet-300); margin-bottom:12px; display:flex; gap:8px; align-items:center; }
     .form-group{ margin-bottom:16px; }
     .form-label{ display:block; margin-bottom:8px; color:var(--violet-200); font-weight:700; font-size:14px; }
-    .form-input, .form-select{
+    .form-input, .form-select, .form-textarea{
       width:100%; padding:14px; border-radius:12px; border:1px solid rgba(147,51,234,.35);
       background: rgba(147,51,234,.10); color:#fff; font-size:16px; outline:none; transition:.2s ease;
     }
-    .form-input::placeholder{ color:#9f8df5; }
-    .form-input:focus, .form-select:focus{ border-color:#a855f7; box-shadow:0 0 0 3px rgba(168, 85, 247, .18); }
+    .form-input::placeholder, .form-textarea::placeholder{ color:#9f8df5; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus{ border-color:#a855f7; box-shadow:0 0 0 3px rgba(168, 85, 247, .18); }
+    .form-textarea { min-height: 150px; }
 
     .pairs-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
     .add-pair-btn{
@@ -184,6 +181,7 @@
     .btn-primary{
       background: linear-gradient(45deg, #8b5cf6, #a855f7); border:none; box-shadow:0 6px 22px rgba(139,92,246,.32);
     }
+    .btn-block{ width:100%; margin-bottom:16px; }
     .btn:hover{ transform: translateY(-1px); }
 
     /* ===== Game Screen ===== */
@@ -405,6 +403,40 @@
     </div>
   </div>
 
+  <div class="modal" id="chooseOptionModal" aria-hidden="true">
+    <div class="modal-content" style="width: min(500px, 90%); margin-top: 20vh; max-height: unset; overflow: unset;">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fas fa-cogs"></i> Choose Option</div>
+        <button class="close-btn" id="closeChooseOptionModalBtn" title="Close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="form-actions" style="border:none; padding-top:0; flex-direction: column;">
+        <button class="btn btn-primary btn-block" id="createSetBtn"><i class="fas fa-pen"></i> Create Custom Set</button>
+        <button class="btn btn-primary btn-block" id="pasteJsonBtn"><i class="fas fa-file-import"></i> Paste JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="pasteJsonModal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fas fa-file-import"></i> Paste JSON</div>
+        <button class="close-btn" id="closePasteJsonModalBtn" title="Close"><i class="fas fa-times"></i></button>
+      </div>
+      <p style="margin-bottom: 16px; line-height: 1.5; color: var(--violet-200);">Don't worry, you can use AI to generate your entire set in this required format. Here is a pre-made prompt for you; just copy and paste it into your favourite AI tool.</p>
+      <div class="form-actions" style="justify-content: flex-start; border: none; padding-top: 0;">
+        <button class="btn btn-primary" id="copyAiPromptBtn"><i class="fas fa-copy"></i> Copy AI Prompt</button>
+      </div>
+      <div class="form-group" style="margin-top: 16px;">
+        <label class="form-label"></label>
+        <textarea id="jsonInput"class="form-textarea" placeholder="Paste your AI generated JSON text here..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn" id="cancelJsonBtn"><i class="fas fa-ban"></i> Cancel</button>
+        <button class="btn btn-primary" id="loadJsonBtn"><i class="fas fa-upload"></i> Load JSON</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="setModal" aria-hidden="true">
     <div class="modal-content">
       <div class="modal-header">
@@ -502,6 +534,18 @@
     const cancelSetBtn = document.getElementById("cancelSetBtn");
     const saveSetBtn = document.getElementById("saveSetBtn");
 
+    const chooseOptionModal = document.getElementById("chooseOptionModal");
+    const closeChooseOptionModalBtn = document.getElementById("closeChooseOptionModalBtn");
+    const createSetBtn = document.getElementById("createSetBtn");
+    const pasteJsonBtn = document.getElementById("pasteJsonBtn");
+
+    const pasteJsonModal = document.getElementById("pasteJsonModal");
+    const closePasteJsonModalBtn = document.getElementById("closePasteJsonModalBtn");
+    const copyAiPromptBtn = document.getElementById("copyAiPromptBtn");
+    const jsonInput = document.getElementById("jsonInput");
+    const cancelJsonBtn = document.getElementById("cancelJsonBtn");
+    const loadJsonBtn = document.getElementById("loadJsonBtn");
+
     const toastEl = document.getElementById("toast");
 
     // ====================== Utils ======================
@@ -530,8 +574,8 @@
       return arr;
     }
 
-    function openModal(){ setModal.classList.add("show"); setModal.setAttribute("aria-hidden","false"); }
-    function closeModal(){ setModal.classList.remove("show"); setModal.setAttribute("aria-hidden","true"); }
+    function openModal(modalEl){ modalEl.classList.add("show"); modalEl.setAttribute("aria-hidden","false"); }
+    function closeModal(modalEl){ modalEl.classList.remove("show"); modalEl.setAttribute("aria-hidden","true"); }
 
     // ====================== NEW: Vibration Function ======================
     function triggerVibration(){
@@ -613,7 +657,7 @@
       difficultySelect.value = "Beginner";
       pairsContainer.innerHTML = "";
       addPairRow();
-      openModal();
+      openModal(setModal);
     }
 
     function openEditSet(index){
@@ -626,7 +670,7 @@
       pairsContainer.innerHTML = "";
       (set.pairs || []).forEach(p => addPairRow(p.word1, p.word2));
       if((set.pairs || []).length === 0) addPairRow();
-      openModal();
+      openModal(setModal);
     }
 
     function addPairRow(w1="", w2=""){
@@ -672,7 +716,33 @@
       }
       saveSets();
       renderSets();
-      closeModal();
+      closeModal(setModal);
+    }
+    
+    // ====================== JSON Import Logic ======================
+    function loadJsonSet(){
+      try{
+        const jsonText = jsonInput.value.trim();
+        if(!jsonText){
+          showToast("Please paste JSON data first.");
+          return;
+        }
+        const newSets = JSON.parse(jsonText);
+        if(!Array.isArray(newSets)){
+          showToast("Invalid JSON format. Expected an array.");
+          return;
+        }
+        
+        sets.push(...newSets);
+        saveSets();
+        renderSets();
+        closeModal(pasteJsonModal);
+        showToast("Sets loaded successfully!");
+
+      } catch(e) {
+        showToast("Failed to load JSON. Please check the format.");
+        console.error("JSON parse error:", e);
+      }
     }
 
     // ====================== Game Logic ======================
@@ -1032,11 +1102,82 @@
     function playClick(){ playTone(660, 80, "square", 0.04); }
 
     // ====================== Events ======================
-    mainAddBtn.addEventListener("click", openCreateSet);
-    closeSetModalBtn.addEventListener("click", closeModal);
-    cancelSetBtn.addEventListener("click", closeModal);
+    mainAddBtn.addEventListener("click", () => openModal(chooseOptionModal));
+    closeSetModalBtn.addEventListener("click", () => closeModal(setModal));
+    cancelSetBtn.addEventListener("click", () => closeModal(setModal));
     addPairBtn.addEventListener("click", ()=> addPairRow());
     saveSetBtn.addEventListener("click", saveSet);
+    
+    // New modal events
+    closeChooseOptionModalBtn.addEventListener("click", () => closeModal(chooseOptionModal));
+    createSetBtn.addEventListener("click", () => {
+        closeModal(chooseOptionModal);
+        openCreateSet();
+    });
+    pasteJsonBtn.addEventListener("click", () => {
+        closeModal(chooseOptionModal);
+        openModal(pasteJsonModal);
+    });
+    closePasteJsonModalBtn.addEventListener("click", () => closeModal(pasteJsonModal));
+    cancelJsonBtn.addEventListener("click", () => closeModal(pasteJsonModal));
+    loadJsonBtn.addEventListener("click", loadJsonSet);
+    
+    // Copy prompt to clipboard
+    copyAiPromptBtn.addEventListener("click", async () => {
+      const prompt = `Prompt:
+
+Please generate a set of the most useful and common polite word pairs for Japanese language learning in JSON format. Include just the words, without any praise or sentences. It is not necessary to specify which word is polite. Provide the Japanese words in both kanji and hiragana. For example, write "食べます : たべます." If a word does not have kanji, use either hiragana or katakana, as appropriate.
+
+The JSON should be an array of objects. Each object must represent a single set and follow this exact structure:
+
+[
+  {
+    "name": "Set Name",
+    "category": "Category",
+    "difficulty": "Difficulty",
+    "pairs": [
+      {
+        "word1": "English Word",
+        "word2": "Translated Word"
+      }
+    ]
+  }
+]
+
+Example Output:
+
+[
+  {
+    "name": "Daily Life Verbs",
+    "category": "Verbs",
+    "difficulty": "Beginner",
+    "pairs": [
+      {
+        "word1": "to eat",
+        "word2": "食べます : たべます"
+      },
+      {
+        "word1": "to drink",
+        "word2": "飲みます : のみます"
+      },
+      {
+        "word1": "to do / make",
+        "word2": "します"
+      }
+    ]
+  }
+]
+
+Please generate a single JSON array with 1–5 example sets.
+Keep words simple, natural, and clear for learners.
+Output only valid JSON, no extra explanations.`;
+      try {
+        await navigator.clipboard.writeText(prompt);
+        showToast("Prompt copied!");
+      } catch (err) {
+        showToast("Failed to copy prompt.");
+      }
+    });
 
     backBtn.addEventListener("click", backToMenu);
     shuffleBtn.addEventListener("click", reshuffleGame);
