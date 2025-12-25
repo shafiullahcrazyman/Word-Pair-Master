@@ -1,6 +1,6 @@
 {
-  "name": "Word Pair Master",
-  "short_name": "Word Pair Master",
+  "name": "Pairo",
+  "short_name": "Pairo",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#291860",
@@ -20,5 +20,6 @@
   ]
 
 }
+
 
 
